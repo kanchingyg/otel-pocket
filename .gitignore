@@ -1,0 +1,4 @@
+dist/
+node_modules/
+otel-pocket
+otel-pocket.exe

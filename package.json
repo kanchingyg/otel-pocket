@@ -1,0 +1,65 @@
+{
+  "name": "otel-pocket",
+  "version": "0.1.1",
+  "description": "Local OTLP trace collector with TUI flamegraphs, N+1 SQL detection, and MCP diagnostics",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "otel-pocket": "./bin/otel-pocket.js"
+  },
+  "main": "./dist/cli.js",
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./bridge": {
+      "types": "./dist/bridge.d.ts",
+      "import": "./dist/bridge.js"
+    }
+  },
+  "files": [
+    "bin",
+    "dist",
+    "SKILL.md",
+    "README.md",
+    "LICENSE",
+    "jsr.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && vitest run",
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "publint": "^0.3.12",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  },
+  "author": "Augusto Cerrutti <augustocerruttisatto@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanchingyg/otel-pocket.git"
+  },
+  "mcpName": "io.github.kanchingyg/otel-pocket",
+  "homepage": "https://github.com/kanchingyg/otel-pocket#readme",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "cli",
+    "typescript",
+    "go",
+    "opentelemetry",
+    "otlp",
+    "tracing",
+    "observability",
+    "tui",
+    "flamegraph"
+  ]
+}

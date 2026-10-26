@@ -1,0 +1,23 @@
+{
+  "name": "@kanchingyg/otel-pocket",
+  "version": "0.1.1",
+  "description": "Local OTLP trace collector with TUI flamegraphs, N+1 SQL detection, and MCP diagnostics",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/cli.ts",
+    "./bridge": "./src/bridge.ts"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "LICENSE",
+      "README.md",
+      "SKILL.md",
+      "jsr.json"
+    ],
+    "exclude": [
+      "src/**/*.test.ts",
+      "src/**/*.spec.ts"
+    ]
+  }
+}
