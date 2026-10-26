@@ -10,7 +10,7 @@ import (
 	"github.com/kanchingyg/otel-pocket/internal/otlp"
 )
 
-const Version = "0.1.0"
+const Version = "0.1.1"
 const defaultNCtx = 4096
 
 type Server struct {

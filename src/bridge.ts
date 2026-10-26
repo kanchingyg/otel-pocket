@@ -1,3 +1,11 @@
+/**
+ * MCP stdio server and trace inspection tools for otel-pocket.
+ *
+ * @example
+ * ```ts
+ * import { buildOtelMcpTools } from "jsr:@kanchingyg/otel-pocket/bridge";
+ * ```
+ */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
@@ -7,17 +15,9 @@ export type { TraceStore } from "./otlp-server.js";
 export type { PocketSpan, TraceSummary } from "./span-analyzer.js";
 import { assertLoopbackLlmBaseUrl } from "./llm-guard.js";
 import { inspectVerboseFromArgs, redactSecretsInString, sanitizeInspectTraceResult, } from "./trace-redact.js";
-
-/** Constant `DEFAULT_N_CTX` defining default n ctx. */
 export const DEFAULT_N_CTX = 4096;
-
-/** Configuration and data shape for `GuardOptions` (guard options). */
 export type GuardOptions = { allowWrite?: boolean; dryRun?: boolean };
-
-/** Configuration and data shape for `McpToolContext` (mcp tool context). */
 export type McpToolContext = { dryRun: boolean; allowWrite: boolean; nCtx: number };
-
-/** Configuration and data shape for `OtelMcpTool` (otel mcp tool). */
 export type OtelMcpTool = {
     name: string;
     description: string;
@@ -26,16 +26,12 @@ export type OtelMcpTool = {
     mutates?: boolean;
     handler: (args: Record<string, unknown>, ctx: McpToolContext) => Promise<unknown> | unknown;
 };
-
-/** Configuration and data shape for `JsonRpcMessage` (json rpc message). */
 export type JsonRpcMessage = {
     jsonrpc?: string;
     id?: number | string;
     method?: string;
     params?: { name?: string; arguments?: Record<string, unknown> };
 };
-
-/** Configuration and data shape for `McpToolDef` (mcp tool def). */
 export type McpToolDef = {
     name: string;
     description: string;
@@ -43,8 +39,6 @@ export type McpToolDef = {
     annotations?: Record<string, unknown>;
     mutates?: boolean;
 };
-
-/** Configuration and data shape for `McpDispatchOptions` (mcp dispatch options). */
 export type McpDispatchOptions = {
     tools?: McpToolDef[];
     handlers?: Record<string, (args: Record<string, unknown>) => Promise<unknown> | unknown>;
@@ -52,26 +46,20 @@ export type McpDispatchOptions = {
     pathToWsl?: boolean;
     nCtx?: number;
 };
-
-/** Configuration and data shape for `ChatMessage` (chat message). */
 export type ChatMessage = {
     role: string;
     content?: string;
     reasoning_content?: string;
     tool_calls?: unknown[];
 };
-
-/** Configuration and data shape for `EmbedLock` (embed lock). */
 export type EmbedLock = { provider: string; model: string; dimension: number };
 const TRUNCATION_MARKER = "[...TRUNCATED BY OTEL-POCKET CONTEXT GUARD...]";
 let allowWrite = false;
 let dryRun = false;
-/** Executes `setGuards` to set guards in `otel-pocket`. */
 export function setGuards(opts: GuardOptions): void {
     allowWrite = Boolean(opts.allowWrite);
     dryRun = Boolean(opts.dryRun);
 }
-/** Executes `canonicalizeJson` to canonicalize json in `otel-pocket`. */
 export function canonicalizeJson(value: unknown): string {
     if (value === null || value === undefined)
         return "null";
@@ -84,12 +72,10 @@ export function canonicalizeJson(value: unknown): string {
     return `{${keys.map((k) => `${JSON.stringify(k)}:${canonicalizeJson(obj[k])}`).join(",")}}`;
 }
 const loopState = { lastHash: "", repeatCount: 0 };
-/** Executes `resetLoopBreaker` to reset loop breaker in `otel-pocket`. */
 export function resetLoopBreaker() {
     loopState.lastHash = "";
     loopState.repeatCount = 0;
 }
-/** Executes `checkLoopBreaker` to check loop breaker in `otel-pocket`. */
 export function checkLoopBreaker(toolName: string, args: unknown): string | null {
     const h = createHash("sha256")
         .update(`${toolName}:${canonicalizeJson(args)}`)
@@ -105,7 +91,6 @@ export function checkLoopBreaker(toolName: string, args: unknown): string | null
     }
     return null;
 }
-/** Executes `guardMutatingTool` to guard mutating tool in `otel-pocket`. */
 export function guardMutatingTool(tool: { mutates?: boolean; name?: string } | null | undefined): {
     blocked: boolean;
     reason?: string;
@@ -125,21 +110,18 @@ export function guardMutatingTool(tool: { mutates?: boolean; name?: string } | n
 }
 const WIN_DRIVE_RE = /^([A-Za-z]):\\(.*)$/;
 const WSL_RE = /^\/mnt\/([a-z])\/(.*)$/i;
-/** Executes `windowsToWsl` to windows to wsl in `otel-pocket`. */
 export function windowsToWsl(p: string): string {
     const m = p.match(WIN_DRIVE_RE);
     if (!m)
         return p;
     return `/mnt/${m[1].toLowerCase()}/${m[2].replace(/\\/g, "/")}`;
 }
-/** Executes `wslToWindows` to wsl to windows in `otel-pocket`. */
 export function wslToWindows(p: string): string {
     const m = p.match(WSL_RE);
     if (!m)
         return p;
     return `${m[1].toUpperCase()}:\\${m[2].replace(/\//g, "\\")}`;
 }
-/** Executes `normalizePathsDeep` to normalize paths deep in `otel-pocket`. */
 export function normalizePathsDeep(value: unknown, toWsl: boolean): unknown {
     if (typeof value === "string") {
         if (toWsl && WIN_DRIVE_RE.test(value))
@@ -158,7 +140,6 @@ export function normalizePathsDeep(value: unknown, toWsl: boolean): unknown {
     }
     return value;
 }
-/** Executes `redactSecrets` to redact secrets in `otel-pocket`. */
 export function redactSecrets(text: string): string {
     return redactSecretsInString(text);
 }
@@ -175,7 +156,6 @@ function assertPathUnderRoot(root: string, targetPath: string): string {
 
 let jsonRpcWrite: ((line: string) => void) | null = null;
 let stdoutHijacked = false;
-/** Executes `hijackStdoutForMcp` to hijack stdout for mcp in `otel-pocket`. */
 export function hijackStdoutForMcp() {
     if (stdoutHijacked)
         return;
@@ -198,7 +178,6 @@ export function hijackStdoutForMcp() {
         return true;
     }) as typeof process.stdout.write;
 }
-/** Constant `jsonRpcFrameLog` defining json rpc frame log. */
 export const jsonRpcFrameLog: string[] = [];
 function writeJsonRpcFrame(obj: Record<string, unknown>): void {
     const line = JSON.stringify(obj) + "\n";
@@ -208,14 +187,13 @@ function writeJsonRpcFrame(obj: Record<string, unknown>): void {
     else
         process.stdout.write(line);
 }
-/** Executes `dispatchMcpMessage` to dispatch mcp message in `otel-pocket`. */
 export function dispatchMcpMessage(msg: JsonRpcMessage, opts: McpDispatchOptions = {}): void {
     const tools = opts.tools ?? [];
     const handlers = opts.handlers ?? {};
     const toWsl = opts.pathToWsl ?? false;
     const nCtx = opts.nCtx ?? DEFAULT_N_CTX;
     const { id, method, params } = msg;
-    const info = opts.serverInfo ?? { name: "otel-pocket", version: "0.1.0" };
+    const info = opts.serverInfo ?? { name: "otel-pocket", version: "0.1.1" };
     if (method === "initialize") {
         writeJsonRpcFrame({
             jsonrpc: "2.0",
@@ -301,7 +279,6 @@ export function dispatchMcpMessage(msg: JsonRpcMessage, opts: McpDispatchOptions
         });
     }
 }
-/** Executes `startMcpServer` to start mcp server in `otel-pocket`. */
 export function startMcpServer(
     meta: { name: string; version: string },
     tools: OtelMcpTool[],
@@ -345,7 +322,6 @@ export function startMcpServer(
         }
     });
 }
-/** Executes `headTailTruncate` to head tail truncate in `otel-pocket`. */
 export function headTailTruncate(text: string, maxChars: number): string {
     if (text.length <= maxChars)
         return text;
@@ -353,11 +329,9 @@ export function headTailTruncate(text: string, maxChars: number): string {
     const tailLen = Math.floor(maxChars * 0.4) - TRUNCATION_MARKER.length;
     return text.slice(0, headLen) + TRUNCATION_MARKER + text.slice(-Math.max(0, tailLen));
 }
-/** Executes `truncateToolOutput` to truncate tool output in `otel-pocket`. */
 export function truncateToolOutput(text: string, nCtx: number): string {
     return headTailTruncate(text, Math.floor(nCtx * 4 * 0.3));
 }
-/** Executes `probeNCtx` to probe nctx in `otel-pocket`. */
 export async function probeNCtx(
     baseUrl: string,
     fetchImpl: typeof fetch = fetch,
@@ -388,7 +362,6 @@ export async function probeNCtx(
     }
     return { nCtx: DEFAULT_N_CTX, source: "fallback" };
 }
-/** Executes `buildRecencyAnchor` to build recency anchor in `otel-pocket`. */
 export function buildRecencyAnchor(sigs: Array<{ name: string; summary: string }>): string {
     const lines = sigs.map((s) => `- ${s.name}: ${s.summary}`);
     return [
@@ -397,7 +370,6 @@ export function buildRecencyAnchor(sigs: Array<{ name: string; summary: string }
         'To call a tool, output ONLY: <tool_call>{"name": "TOOL_NAME", "arguments": {...}}</tool_call>',
     ].join("\n");
 }
-/** Executes `anchorPromptTail` to anchor prompt tail in `otel-pocket`. */
 export function anchorPromptTail(prompt: string, anchor: string): string {
     const marker = "\nASSISTANT:";
     const idx = prompt.lastIndexOf(marker);
@@ -405,11 +377,9 @@ export function anchorPromptTail(prompt: string, anchor: string): string {
         return `${prompt}\n\n${anchor}\n${marker}`;
     return `${prompt.slice(0, idx)}\n\n${anchor}\n${prompt.slice(idx)}`;
 }
-/** Executes `stripRedactedThinking` to strip redacted thinking in `otel-pocket`. */
 export function stripRedactedThinking(text: string): string {
     return text.replace(/<think>[\s\S]*?(?:<\/redacted_thinking>|$)/gi, "");
 }
-/** Executes `parseDirtyToolCall` to parse dirty tool call in `otel-pocket`. */
 export function parseDirtyToolCall(content: string): { name: string; arguments: Record<string, unknown> } | null {
     const text = stripRedactedThinking(content);
     const hermes = text.match(/<tool_call>\s*([\s\S]*?)\s*<\/tool_call>/i);
@@ -479,11 +449,9 @@ export class StreamToolJsonAbort {
         return this.started && this.depth === 0 && /\{[\s\S]*\}/.test(this.acc);
     }
 }
-/** Executes `createReasoningState` to create reasoning state in `otel-pocket`. */
 export function createReasoningState(): { inToolLoop: boolean; lastUserTurnIndex: number } {
     return { inToolLoop: false, lastUserTurnIndex: -1 };
 }
-/** Executes `applyReasoningContentPolicy` to apply reasoning content policy in `otel-pocket`. */
 export function applyReasoningContentPolicy(
     messages: ChatMessage[],
     state: { inToolLoop: boolean; lastUserTurnIndex: number },
@@ -509,7 +477,6 @@ export function applyReasoningContentPolicy(
     });
     return { messages: cleaned, state };
 }
-/** Executes `sanitizeRequestBody` to sanitize request body in `otel-pocket`. */
 export function sanitizeRequestBody(body: Record<string, unknown>, model: string): Record<string, unknown> {
     const out = { ...body };
     if (/deepseek-reasoner|qwq|glm-z1|thinking/i.test(model)) {
@@ -518,7 +485,6 @@ export function sanitizeRequestBody(body: Record<string, unknown>, model: string
     }
     return out;
 }
-/** Executes `detectProvider` to detect provider in `otel-pocket`. */
 export function detectProvider(baseUrl: string, _model: string): "dashscope" | "moonshot" | "ollama" | "openai" | "generic" {
     const u = baseUrl.toLowerCase();
     if (u.includes("dashscope"))
@@ -531,49 +497,40 @@ export function detectProvider(baseUrl: string, _model: string): "dashscope" | "
         return "openai";
     return "generic";
 }
-/** Executes `normalizeToolChoice` to normalize tool choice in `otel-pocket`. */
 export function normalizeToolChoice(toolChoice: string, provider: string): string {
     if ((toolChoice === "required" || toolChoice === "any") && provider !== "openai")
         return "auto";
     return toolChoice;
 }
-/** Constant `EMBED_LOCK` defining embed lock. */
 export const EMBED_LOCK = ".otel-pocket-embed-lock.json";
-/** Executes `readEmbedLock` to read embed lock in `otel-pocket`. */
 export function readEmbedLock(repoRoot: string): EmbedLock | null {
     const p = assertPathUnderRoot(repoRoot, EMBED_LOCK);
     if (!existsSync(p))
         return null;
     return JSON.parse(readFileSync(p, "utf8")) as EmbedLock;
 }
-/** Executes `writeEmbedLock` to write embed lock in `otel-pocket`. */
 export function writeEmbedLock(repoRoot: string, lock: EmbedLock): void {
     const p = assertPathUnderRoot(repoRoot, EMBED_LOCK);
     writeFileSync(p, JSON.stringify(lock, null, 2));
 }
-/** Executes `assertDimensionFingerprint` to assert dimension fingerprint in `otel-pocket`. */
 export function assertDimensionFingerprint(lock: EmbedLock | null, dim: number): void {
     if (lock && lock.dimension !== dim) {
         throw new Error(`Dimension fingerprint mismatch: lock expects ${lock.dimension}, got ${dim}`);
     }
 }
-/** Executes `l2Normalize` to l2 normalize in `otel-pocket`. */
 export function l2Normalize(vec: number[]): number[] {
     const norm = Math.hypot(...vec) || 1;
     return vec.map((v) => v / norm);
 }
-/** Executes `mrlSlice` to mrl slice in `otel-pocket`. */
 export function mrlSlice(vec: number[], dimensions: number): number[] {
     return l2Normalize(vec.slice(0, dimensions));
 }
-/** Executes `floatArrayToBase64` to float array to base64 in `otel-pocket`. */
 export function floatArrayToBase64(vec: number[]): string {
     const buf = Buffer.alloc(vec.length * 4);
     for (let i = 0; i < vec.length; i++)
         buf.writeFloatLE(vec[i], i * 4);
     return buf.toString("base64");
 }
-/** Executes `base64ToFloatArray` to base64 to float array in `otel-pocket`. */
 export function base64ToFloatArray(b64: string): number[] {
     const buf = Buffer.from(b64, "base64");
     const out = [];
@@ -581,14 +538,12 @@ export function base64ToFloatArray(b64: string): number[] {
         out.push(buf.readFloatLE(i));
     return out;
 }
-/** Executes `chunkArray` to chunk array in `otel-pocket`. */
 export function chunkArray<T>(arr: T[], size: number): T[][] {
     const out = [];
     for (let i = 0; i < arr.length; i += size)
         out.push(arr.slice(i, i + size));
     return out;
 }
-/** Executes `normalizeEmbedBatch` to normalize embed batch in `otel-pocket`. */
 export async function normalizeEmbedBatch(
     inputs: string[],
     options: {
@@ -622,7 +577,6 @@ export async function normalizeEmbedBatch(
     }
     return { embeddings };
 }
-/** Executes `buildOtelMcpTools` to build otel mcp tools in `otel-pocket`. */
 export function buildOtelMcpTools(store: TraceStore): OtelMcpTool[] {
     return [
         {
@@ -731,7 +685,6 @@ export function buildOtelMcpTools(store: TraceStore): OtelMcpTool[] {
         },
     ];
 }
-/** Executes `diagnoseWithOpenAiCompat` to diagnose with open ai compat in `otel-pocket`. */
 export async function diagnoseWithOpenAiCompat(
     baseUrl: string,
     model: string,

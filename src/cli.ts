@@ -5,7 +5,6 @@ import { createTraceStore, createOtlpServer } from "./otlp-server.js";
 import { buildOtelMcpTools, setGuards, startMcpServer } from "./bridge.js";
 import { renderLiveFrame } from "./tui-render.js";
 const DEFAULT_PORT = 4318;
-/** Executes `parseArgv` to parse argv in `otel-pocket`. */
 export function parseArgv(argv: string[]): { port: number; mcp: boolean; dryRun: boolean; allowWrite: boolean; help: boolean } {
     let port = DEFAULT_PORT;
     let mcp = false;
@@ -30,7 +29,6 @@ export function parseArgv(argv: string[]): { port: number; mcp: boolean; dryRun:
     }
     return { port, mcp, dryRun, allowWrite, help };
 }
-/** Executes `runCli` to run cli in `otel-pocket`. */
 export async function runCli(argv: string[]): Promise<number> {
     const opts = parseArgv(argv);
     if (opts.help) {
@@ -43,7 +41,7 @@ export async function runCli(argv: string[]): Promise<number> {
     if (opts.mcp) {
         setGuards({ allowWrite: opts.allowWrite, dryRun: opts.dryRun });
         createOtlpServer(opts.port, store);
-        startMcpServer({ name: "otel-pocket", version: "0.1.0" }, buildOtelMcpTools(store), { allowWrite: opts.allowWrite });
+        startMcpServer({ name: "otel-pocket", version: "0.1.1" }, buildOtelMcpTools(store), { allowWrite: opts.allowWrite });
         return 0;
     }
     createOtlpServer(opts.port, store);

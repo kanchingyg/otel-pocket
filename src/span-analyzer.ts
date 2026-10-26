@@ -1,4 +1,3 @@
-/** Configuration and data shape for `PocketSpan` (pocket span). */
 export type PocketSpan = {
   traceId: string;
   spanId: string;
@@ -9,8 +8,6 @@ export type PocketSpan = {
   attributes: Record<string, string | number | boolean>;
   statusCode?: number;
 };
-
-/** Configuration and data shape for `TraceSummary` (trace summary). */
 export type TraceSummary = {
   traceId: string;
   rootName: string;

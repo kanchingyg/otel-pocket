@@ -6,10 +6,6 @@
 [![JSR Score](https://jsr.io/badges/@kanchingyg/otel-pocket/score)](https://jsr.io/@kanchingyg/otel-pocket/score)
 [![Go](https://img.shields.io/badge/engine-Go_%2B_TypeScript-00ADD8)](https://github.com/kanchingyg/otel-pocket)
 [![license](https://img.shields.io/github/license/kanchingyg/otel-pocket)](https://github.com/kanchingyg/otel-pocket/blob/HEAD/LICENSE)
-[![npm](https://img.shields.io/npm/v/otel-pocket)](https://www.npmjs.com/package/otel-pocket)
-[![JSR](https://jsr.io/badges/@kanchingyg/otel-pocket)](https://jsr.io/@kanchingyg/otel-pocket)
-[![Go](https://img.shields.io/badge/engine-Go-00ADD8)](https://github.com/kanchingyg/otel-pocket)
-[![license](https://img.shields.io/github/license/kanchingyg/otel-pocket)](https://github.com/kanchingyg/otel-pocket/blob/HEAD/LICENSE)
 
 **One command** local OpenTelemetry collector: `npx otel-pocket` (or `bunx otel-pocket`) listens on `:4318` for OTLP/JSON traces, renders a live terminal flamegraph, flags SQL N+1 loops, and surfaces `gen_ai.*` LLM spans (Ollama, OpenAI, Anthropic).
 

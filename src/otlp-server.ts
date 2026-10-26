@@ -10,8 +10,6 @@ import {
 } from "./span-analyzer.js";
 
 export const MAX_INGEST_BODY_BYTES = 32 * 1024 * 1024;
-
-/** Configuration and data shape for `TraceStore` (trace store). */
 export type TraceStore = {
   spans: PocketSpan[];
   maxTraces: number;
